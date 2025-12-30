@@ -15,6 +15,7 @@ services:
     build: ./service
     environment:
       DATABASE_URL: ${DATABASE_URL}
+      FINNHUB_API_KEY: ${FINNHUB_API_KEY}
     depends_on:
       - db
     ports:

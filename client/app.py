@@ -21,6 +21,39 @@ resp = requests.get(f"{API_URL}/holdings").json()
 df = pd.DataFrame(resp)
 st.dataframe(df if not df.empty else pd.DataFrame(columns=["symbol","shares","avg_cost"]), use_container_width=True)
 
+# Live Quote” section
+st.subheader("Live Quote")
+qcol1, qcol2 = st.columns([2, 1])
+q_symbol = qcol1.text_input("Quote symbol", value="AAPL")
+if qcol2.button("Get price"):
+    try:
+        q = requests.get(f"{API_URL}/price/{q_symbol}", timeout=8).json()
+        st.metric(
+            label=f"{q['symbol']} price",
+            value=f"${q['current']:.2f}",
+            delta=f"{q['change']:+.2f} ({q['change_pct']:+.2f}%)",
+        )
+        st.caption(f"Source: {q['source']}")
+        st.json(q)
+    except Exception as e:
+        st.error(f"Failed to fetch quote: {e}")
+if not df.empty:
+    prices = []
+    for sym in df["symbol"].tolist():
+        try:
+            q = requests.get(f"{API_URL}/price/{sym}", timeout=8).json()
+            prices.append(q["current"])
+        except Exception:
+            prices.append(None)
+
+    df["current_price"] = prices
+    df["market_value"] = df["shares"] * df["current_price"]
+    df["cost_basis"] = df["shares"] * df["avg_cost"]
+    df["unrealized_pl"] = df["market_value"] - df["cost_basis"]
+    st.dataframe(df, use_container_width=True)
+
+        
+
 st.subheader("Place a Trade")
 col1, col2, col3, col4 = st.columns(4)
 symbol = col1.text_input("Symbol", value="AAPL")
@@ -36,3 +69,5 @@ if st.button("Submit Trade"):
         st.rerun()
     else:
         st.error(r.text)
+
+

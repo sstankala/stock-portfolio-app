@@ -3,3 +3,5 @@ uvicorn[standard]==0.30.6
 sqlalchemy==2.0.36 
 psycopg2-binary==2.9.9 
 pydantic==2.9.2
+requests==2.32.3
+cachetools==5.5.0
